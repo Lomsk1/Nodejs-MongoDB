@@ -12,6 +12,7 @@ import {
   getTourStats,
   getMonthlyPlan,
 } from '../controllers/tourController.js';
+import { protect } from '../controllers/authController.js';
 
 const router = express.Router();
 
@@ -21,7 +22,9 @@ router.route('/top-5-cheap').get(aliasTopTours, getAllTours);
 router.route('/tour-stats').get(getTourStats);
 router.route('/monthly-plan:year').get(getMonthlyPlan);
 
-router.route('/').get(getAllTours).post(
+// we use protect if we want to get something if user is login
+
+router.route('/').get(protect, getAllTours).post(
   // checkBody,
   createTour
 );
