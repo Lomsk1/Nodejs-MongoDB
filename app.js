@@ -17,7 +17,6 @@ const app = express();
 if (process.env.NODE_ENV === 'development') {
   // 3-rd Party Middleware
   app.use(morgan('dev'));
-  console.log('sd')
 }
 
 // Middleware
