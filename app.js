@@ -7,6 +7,8 @@ import { errorController } from './controllers/errorController.js';
 import dotenv from 'dotenv';
 import { rateLimit } from 'express-rate-limit';
 import helmet from 'helmet';
+import mongoSanitize from 'express-mongo-sanitize';
+import xss from 'xss-clean';
 
 dotenv.config();
 
@@ -38,6 +40,12 @@ app.use(
     limit: '10kb',
   })
 );
+
+// Data sanitization against NoSQL query injection
+app.use(mongoSanitize());
+
+// Data sanitization against XSS
+app.use(xss());
 
 // Static Files Read
 app.use(express.static(`./public`));
