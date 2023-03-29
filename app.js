@@ -5,6 +5,7 @@ import userRouter from './routes/userRoutes.js';
 import AppError from './utils/appErrors.js';
 import { errorController } from './controllers/errorController.js';
 import dotenv from 'dotenv';
+import { rateLimit } from 'express-rate-limit';
 
 dotenv.config();
 
@@ -14,10 +15,19 @@ dotenv.config();
 const app = express();
 // console.log(process.env.NODE_ENV);
 
+// 1) GLOBAL MiddleWares
 if (process.env.NODE_ENV === 'development') {
   // 3-rd Party Middleware
   app.use(morgan('dev'));
 }
+
+// fot how many request per IP we are going to  allowed in a certain amount of time
+const limiter = rateLimit({
+  max: 100,
+  windowMs: 60 * 60 * 1000, //for hour
+  message: 'Too many request from this IP, please try again in an hour!',
+});
+app.use('/api', limiter); //only which starts with this URL
 
 // Middleware
 app.use(express.json());
