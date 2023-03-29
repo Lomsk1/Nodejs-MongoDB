@@ -6,6 +6,7 @@ import AppError from './utils/appErrors.js';
 import { errorController } from './controllers/errorController.js';
 import dotenv from 'dotenv';
 import { rateLimit } from 'express-rate-limit';
+import helmet from 'helmet';
 
 dotenv.config();
 
@@ -13,9 +14,11 @@ dotenv.config();
 // const userRouter = require('./routes/userRoutes');
 
 const app = express();
-// console.log(process.env.NODE_ENV);
 
-// 1) GLOBAL MiddleWares
+// SET Security HTTP headers
+app.use(helmet());
+
+// 1) Development Logging
 if (process.env.NODE_ENV === 'development') {
   // 3-rd Party Middleware
   app.use(morgan('dev'));
@@ -30,7 +33,11 @@ const limiter = rateLimit({
 app.use('/api', limiter); //only which starts with this URL
 
 // Middleware
-app.use(express.json());
+app.use(
+  express.json({
+    limit: '10kb',
+  })
+);
 
 // Static Files Read
 app.use(express.static(`./public`));
