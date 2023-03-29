@@ -9,6 +9,7 @@ import { rateLimit } from 'express-rate-limit';
 import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
 import xss from 'xss-clean';
+import hpp from 'hpp';
 
 dotenv.config();
 
@@ -46,6 +47,13 @@ app.use(mongoSanitize());
 
 // Data sanitization against XSS
 app.use(xss());
+
+// Prevent parameter pollution
+app.use(
+  hpp({
+    whitelist: ['duration'], // if we need to get double or more sorts
+  })
+);
 
 // Static Files Read
 app.use(express.static(`./public`));
