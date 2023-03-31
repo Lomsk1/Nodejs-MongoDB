@@ -2,6 +2,13 @@ import Tour from '../models/tourModel.js';
 import APIFeatures from '../utils/apiFeatures.js';
 import AppError from '../utils/appErrors.js';
 import { catchAsync } from '../utils/catchAsync.js'; // automatic try/catch method
+import {
+  createOne,
+  deleteOne,
+  getAll,
+  getOne,
+  updateOne,
+} from './handlerFactory.js';
 
 export const aliasTopTours = async (req, res, next) => {
   (req.query.limit = '5'), (req.query.sort = '-ratingsAverage,price'); //rating sorting
@@ -10,91 +17,96 @@ export const aliasTopTours = async (req, res, next) => {
   next();
 };
 
-export const getAllTours = catchAsync(async (req, res, next) => {
-  // Execute Query
-  const features = new APIFeatures(Tour.find(), req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
+// export const getAllTours = catchAsync(async (req, res, next) => {
+//   // Execute Query
+//   const features = new APIFeatures(Tour.find(), req.query)
+//     .filter()
+//     .sort()
+//     .limitFields()
+//     .paginate();
 
-  const tours = await features.query;
+//   const tours = await features.query;
 
-  res.status(200).json({
-    status: 'success',
-    requestedAt: req.requestTime,
-    results: tours.length,
-    data: {
-      tours: tours,
-    },
-  });
-});
+//   res.status(200).json({
+//     status: 'success',
+//     requestedAt: req.requestTime,
+//     results: tours.length,
+//     data: {
+//       tours: tours,
+//     },
+//   });
+// });
+export const getAllTours = getAll(Tour);
 
-// Get One Tour
-export const getOneTour = catchAsync(async (req, res, next) => {
-  // const id = req.params.id * 1; // string to number
+//// Get One Tour
+// export const getOneTour = catchAsync(async (req, res, next) => {
+//   // const id = req.params.id * 1; // string to number
 
-  const tour = await Tour.findById(req.params.id);
+//   const tour = await Tour.findById(req.params.id).populate('reviews');
 
-  // If we need to show children objects full, we simply add > populate  like this ¬ or make middle ware without changing here.
-  // const tour = await Tour.findById(req.params.id).populate({
-  //   path: "guides",
-  //   select: "-__v -passwordChangedAt"
-  // });
+//   // If we need to show children objects full, we simply add > populate  like this ¬ or make middle ware without changing here.
+//   // const tour = await Tour.findById(req.params.id).populate({
+//   //   path: "guides",
+//   //   select: "-__v -passwordChangedAt"
+//   // });
 
-  if (!tour) {
-    return next(new AppError(`No tour found with that ID`, 404));
-  }
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-});
+//   if (!tour) {
+//     return next(new AppError(`No tour found with that ID`, 404));
+//   }
+//   res.status(200).json({
+//     status: 'success',
+//     data: {
+//       tour,
+//     },
+//   });
+// });
+export const getOneTour = getOne(Tour, { path: 'reviews' });
 
-// Create Tour
-export const createTour = catchAsync(async (req, res, next) => {
-  const newTour = await Tour.create(req.body);
-  res.status(201).json({
-    status: 'success',
-    data: {
-      tour: newTour,
-    },
-  });
-});
+//// Create Tour
+// export const createTour = catchAsync(async (req, res, next) => {
+//   const newTour = await Tour.create(req.body);
+//   res.status(201).json({
+//     status: 'success',
+//     data: {
+//       tour: newTour,
+//     },
+//   });
+// });
+export const createTour = createOne(Tour);
 
-// Update Tour
-export const updateTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true, //if we want to use validations
-  });
+//// Update Tour
+// export const updateTour = catchAsync(async (req, res, next) => {
+//   const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+//     new: true,
+//     runValidators: true, //if we want to use validations
+//   });
 
-  if (!tour) {
-    return next(new AppError(`No tour found with that ID`, 404));
-  }
+//   if (!tour) {
+//     return next(new AppError(`No tour found with that ID`, 404));
+//   }
 
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-});
+//   res.status(200).json({
+//     status: 'success',
+//     data: {
+//       tour,
+//     },
+//   });
+// });
+export const updateTour = updateOne(Tour);
 
-//   Delete Tour
-export const deleteTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findByIdAndDelete(req.params.id);
+////   Delete Tour
+// export const deleteTour = catchAsync(async (req, res, next) => {
+//   const tour = await Tour.findByIdAndDelete(req.params.id);
 
-  if (!tour) {
-    return next(new AppError(`No tour found with that ID`, 404));
-  }
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
-});
+//   if (!tour) {
+//     return next(new AppError(`No tour found with that ID`, 404));
+//   }
+//   res.status(204).json({
+//     status: 'success',
+//     data: null,
+//   });
+// });
+export const deleteTour = deleteOne(Tour);
 
 // Stats ---> diagrams
 export const getTourStats = async (req, res) => {

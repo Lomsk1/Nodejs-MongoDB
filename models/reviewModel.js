@@ -6,7 +6,7 @@ const reviewSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Review can not be empty'],
     },
-    ratting: {
+    rating: {
       type: Number,
       min: 1,
       max: 5,
@@ -27,18 +27,23 @@ const reviewSchema = new mongoose.Schema(
     },
   },
   {
-    // this is for Options
-    toJSON: { virtuals: true }, //show virtual schema
+    toJSON: { virtuals: true },
     toObject: { virtuals: true },
   }
 );
 
 reviewSchema.pre(/^find/, function (next) {
   // populate gives us whole information about this object with this ID (parent). select > that we want to see
+
+  // this.populate({
+  //   path: 'tour',
+  //   select: 'name',
+  // }).populate({
+  //   path: 'user',
+  //   select: 'name photo',
+  // });
+
   this.populate({
-    path: 'tour',
-    select: 'name',
-  }).populate({
     path: 'user',
     select: 'name photo',
   });

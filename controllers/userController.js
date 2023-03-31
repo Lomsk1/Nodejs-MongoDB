@@ -1,6 +1,7 @@
 import User from '../models/userModel.js';
 import AppError from '../utils/appErrors.js';
 import { catchAsync } from '../utils/catchAsync.js';
+import { deleteOne, getAll, getOne, updateOne } from './handlerFactory.js';
 
 const filterObj = (obj, ...allowedFields) => {
   const newObj = {};
@@ -10,19 +11,6 @@ const filterObj = (obj, ...allowedFields) => {
 
   return newObj;
 };
-
-export const getAllUsers = catchAsync(async (req, res, next) => {
-  const users = await User.find();
-
-  res.status(200).json({
-    status: 'success',
-    requestedAt: req.requestTime,
-    results: users.length,
-    data: {
-      users,
-    },
-  });
-});
 
 export const updateMe = catchAsync(async (req, res, next) => {
   // 1) Create error if user POSTs password data
@@ -63,27 +51,16 @@ export const deleteMe = catchAsync(async (req, res, next) => {
   });
 });
 
-export const createUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This rout is not',
-  });
+export const getMe = (req, res, next) => {
+  req.params.id = req.user.id;
+  next();
 };
-export const getUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This rout is not',
-  });
-};
-export const updateUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This rout is not',
-  });
-};
-export const deleteUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This rout is not',
-  });
-};
+
+export const getAllUsers = getAll(User);
+
+export const getUser = getOne(User);
+
+// Don't update password like that!
+export const updateUser = updateOne(User);
+
+export const deleteUser = deleteOne(User);

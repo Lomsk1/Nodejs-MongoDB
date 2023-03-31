@@ -82,6 +82,7 @@ const tourSchema = new mongoose.Schema(
     ],
     // guides: Array, // for 2+ children. we also need middleWare down (Embedding)
     guides: [{ type: mongoose.Schema.ObjectId, ref: 'User' }], //Adding only IDs
+    reviews: [{ type: mongoose.Schema.ObjectId, ref: 'Review' }],
   },
   {
     // this is for Options
@@ -94,6 +95,13 @@ const tourSchema = new mongoose.Schema(
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7; //if we have a duration field
 });
+
+//// Virtual populate
+// tourSchema.virtual('reviews', {
+//   ref: 'Review',
+//   foreignField: 'tour', //field name, which we have connected
+//   localField: '_id',
+// });
 
 // mongoose has 4 types of middleware
 
