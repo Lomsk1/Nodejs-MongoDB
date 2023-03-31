@@ -36,6 +36,12 @@ export const getOneTour = catchAsync(async (req, res, next) => {
 
   const tour = await Tour.findById(req.params.id);
 
+  // If we need to show children objects full, we simply add > populate  like this ¬ or make middle ware without changing here.
+  // const tour = await Tour.findById(req.params.id).populate({
+  //   path: "guides",
+  //   select: "-__v -passwordChangedAt"
+  // });
+
   if (!tour) {
     return next(new AppError(`No tour found with that ID`, 404));
   }

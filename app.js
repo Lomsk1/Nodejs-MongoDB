@@ -2,6 +2,7 @@ import express from 'express';
 import morgan from 'morgan';
 import tourRouter from './routes/tourRoutes.js';
 import userRouter from './routes/userRoutes.js';
+import reviewRouter from './routes/reviewRoutes.js';
 import AppError from './utils/appErrors.js';
 import { errorController } from './controllers/errorController.js';
 import dotenv from 'dotenv';
@@ -71,6 +72,7 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/reviews', reviewRouter);
 
 app.all('*', (req, res, next) => {
   // res.status(404).json({
