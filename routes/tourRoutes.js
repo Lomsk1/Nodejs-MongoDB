@@ -11,6 +11,8 @@ import {
   aliasTopTours,
   getTourStats,
   getMonthlyPlan,
+  getTourWithin,
+  getDistances,
 } from '../controllers/tourController.js';
 import { protect, restrictTo } from '../controllers/authController.js';
 import { createReview } from '../controllers/reviewController.js';
@@ -22,18 +24,28 @@ const router = express.Router();
 
 router.route('/top-5-cheap').get(aliasTopTours, getAllTours);
 router.route('/tour-stats').get(getTourStats);
-router.route('/monthly-plan:year').get(getMonthlyPlan);
+router
+  .route('/monthly-plan:year')
+  .get(protect, restrictTo('user', 'lead-guide', 'guide'), getMonthlyPlan);
 
 // we use protect if we want to get something if user is login
 
+router
+  .route('/tours-within/:distance/center/:latlng/unit/:unit')
+  .get(getTourWithin);
+
+router.route('/distances/:latlng/unit/:unit').get(getDistances);
+
 router.route('/').get(protect, getAllTours).post(
   // checkBody,
+  protect,
+  restrictTo('admin', 'lead-guide'),
   createTour
 );
 router
   .route('/:id')
   .get(getOneTour)
-  .patch(updateTour)
+  .patch(protect, restrictTo('user', 'lead-guide'), updateTour)
   .delete(protect, restrictTo('user', 'lead-guide'), deleteTour);
 
 // router

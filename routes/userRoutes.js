@@ -26,17 +26,17 @@ router.post('/login', login);
 router.post('/forgotPassword', forgetPassword);
 router.patch('/resetPassword/:token', resetPassword);
 
-router.patch('/updateMyPassword', protect, updatePassword);
+router.use(protect); // after this, everything needs to be authorized
 
-router.get('/me', protect, getMe, getUser);
-router.patch('/updateMe', protect, updateMe);
-router.delete('/deleteMe', protect, deleteMe);
+router.patch('/updateMyPassword', updatePassword);
+
+router.get('/me', getMe, getUser);
+router.patch('/updateMe', updateMe);
+router.delete('/deleteMe', deleteMe);
+
+router.use(restrictTo('admin')); // after this, only admin can send this requests
 
 router.route('/').get(getAllUsers);
-router
-  .route('/:id')
-  .get(getUser)
-  .patch(restrictTo('admin'), updateUser)
-  .delete(restrictTo('admin'), deleteUser);
+router.route('/:id').get(getUser).patch(updateUser).delete(deleteUser);
 
 export default router;

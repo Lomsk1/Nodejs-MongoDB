@@ -20,6 +20,7 @@ const tourSchema = new mongoose.Schema(
       default: 4.5,
       min: [1, 'Rating must be above 1.0'],
       max: [5, 'Rating must...'],
+      set: (val) => Math.round(val * 10) / 10,
     },
 
     price: {
@@ -111,6 +112,13 @@ tourSchema.pre('save', function (next) {
   next();
 });
 
+//// For good Read
+// tourSchema.index({ price: 1 });
+tourSchema.index({ price: 1, ratingAverage: -1 });
+tourSchema.index({ slug: 1 });
+
+tourSchema.index({ startLocation: '2dsphere' });
+
 //  <!  If guides is Array  - Embedding !>
 // tourSchema.pre('save', async function (next) {
 //   const guidesPromises = this.guides.map(async (id) => await User.findById(id));
@@ -147,10 +155,11 @@ tourSchema.post(/^find/, function (docs, next) {
   next();
 });
 
-// AGGREGATION Middleware
-tourSchema.pre('aggregate', function (next) {
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-});
+//// AGGREGATION Middleware
+// tourSchema.pre('aggregate', function (next) {
+//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+//   next()
+// });
 
 const Tour = mongoose.model('Tour', tourSchema);
 

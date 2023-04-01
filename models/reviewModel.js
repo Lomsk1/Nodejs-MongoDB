@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import Tour from './tourModel.js';
 
 const reviewSchema = new mongoose.Schema(
   {
@@ -32,6 +33,9 @@ const reviewSchema = new mongoose.Schema(
   }
 );
 
+// Can NOT make each reviews by one user
+reviewSchema.index({ tour: 1, user: 1 }, { unique: true });
+
 reviewSchema.pre(/^find/, function (next) {
   // populate gives us whole information about this object with this ID (parent). select > that we want to see
 
@@ -49,6 +53,48 @@ reviewSchema.pre(/^find/, function (next) {
   });
 
   next();
+});
+
+reviewSchema.statics.calcAverageRating = async function (tourId) {
+  const stats = await this.aggregate([
+    {
+      $match: { tour: tourId },
+    },
+    {
+      $group: {
+        _id: '$tour', //grouped by...
+        nRating: { $sum: 1 },
+        avgRating: { $avg: '$rating' }, //which we want to average
+      },
+    },
+  ]);
+  if (stats.length > 0) {
+    await Tour.findByIdAndUpdate(tourId, {
+      ratingsQuantity: stats[0].nRating,
+      ratingsAverage: stats[0].avgRating,
+    }); // this two from schema model...
+  } else {
+    await Tour.findByIdAndUpdate(tourId, {
+      ratingsQuantity: 0,
+      ratingsAverage: 4.5,
+    });
+    F;
+  }
+};
+
+reviewSchema.post('save', function (next) {
+  // this points to current review
+  this.constructor.calcAverageRating(this.tour);
+});
+
+reviewSchema.pre(/^findOneAnd/, async function (next) {
+  this.r = await this.findOne();
+  next();
+});
+
+reviewSchema.post(/^findOneAnd/, async function () {
+  // Await this.findOne(); does NOT work here, query has already executed
+  await this.r.constructor.calcAverageRating(this.r.tour);
 });
 
 const Review = mongoose.model('Review', reviewSchema);
