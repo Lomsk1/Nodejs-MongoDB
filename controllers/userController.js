@@ -1,7 +1,64 @@
+import multer from 'multer';
+import sharp from 'sharp';
 import User from '../models/userModel.js';
 import AppError from '../utils/appErrors.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import { deleteOne, getAll, getOne, updateOne } from './handlerFactory.js';
+
+//// This is for saving photos to our disk storage ////
+// const multerStorage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, 'public/img/users');
+//   },
+//   filename: (req, file, cb) => {
+//     const ext = file.mimetype.split('/')[1];
+
+//     cb(null, `user-${req.user.id}-${Date.now()}.${ext}`);
+//   },
+// });
+
+//// This is for saving photos to our Memory storage ////
+const multerStorage = multer.memoryStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'public/img/users');
+  },
+  filename: (req, file, cb) => {
+    const ext = file.mimetype.split('/')[1];
+
+    cb(null, `user-${req.user.id}-${Date.now()}.${ext}`);
+  },
+});
+
+// If we need to specify ony images
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image')) {
+    cb(null, true);
+  } else {
+    cb(new AppError('Not an Image! Please upload inly images', 400), false);
+  }
+};
+
+const upload = multer({
+  // dest: 'public/img/users', // where we want to upload
+  storage: multerStorage,
+  fileFilter: multerFilter,
+});
+
+export const uploadUserPhoto = upload.single('photo'); //we can use any name which we want to call. single means one photo only
+
+export const resizeUserPhoto = catchAsync(async (req, res, next) => {
+  if (!req.file) return next();
+
+  req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
+
+  await sharp(req.file.buffer)
+    .resize(500, 500)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toFile(`pubic/img/users/${req.file.filename}`);
+
+  next();
+});
 
 const filterObj = (obj, ...allowedFields) => {
   const newObj = {};
@@ -26,6 +83,9 @@ export const updateMe = catchAsync(async (req, res, next) => {
   // 2) Filtered out unwanted fields that are not allowed to be updated
 
   const filteredBody = filterObj(req.body, 'name', 'email'); // that we are allowed to change
+
+  // Upload image to database
+  if (req.file) filteredBody.photo = req.file.filename;
 
   // 3) Update user document
 

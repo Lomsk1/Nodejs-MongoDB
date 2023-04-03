@@ -7,6 +7,8 @@ import {
   updateMe,
   deleteMe,
   getMe,
+  uploadUserPhoto,
+  resizeUserPhoto,
 } from '../controllers/userController.js';
 import {
   forgetPassword,
@@ -31,7 +33,7 @@ router.use(protect); // after this, everything needs to be authorized
 router.patch('/updateMyPassword', updatePassword);
 
 router.get('/me', getMe, getUser);
-router.patch('/updateMe', updateMe);
+router.patch('/updateMe', uploadUserPhoto, resizeUserPhoto, updateMe);
 router.delete('/deleteMe', deleteMe);
 
 router.use(restrictTo('admin')); // after this, only admin can send this requests

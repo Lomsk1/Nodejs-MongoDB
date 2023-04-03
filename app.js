@@ -19,6 +19,13 @@ dotenv.config();
 
 const app = express();
 
+// For static files
+app.set('view engine', 'pug');
+app.set('views', './views');
+
+// Static Files Read
+app.use(express.static(`./public`));
+
 // SET Security HTTP headers
 app.use(helmet());
 
@@ -56,9 +63,6 @@ app.use(
   })
 );
 
-// Static Files Read
-app.use(express.static(`./public`));
-
 // Own Middleware
 app.use((req, res, next) => {
   next(); // If we don't use next() function, we don't receive responses
@@ -70,6 +74,10 @@ app.use((req, res, next) => {
 });
 
 // Routes
+app.get('/', (req, res) => {
+  res.status(200).render('base');
+});
+
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);

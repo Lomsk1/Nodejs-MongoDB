@@ -1,3 +1,5 @@
+import multer from 'multer';
+import sharp from 'sharp';
 import Tour from '../models/tourModel.js';
 import APIFeatures from '../utils/apiFeatures.js';
 import AppError from '../utils/appErrors.js';
@@ -9,6 +11,62 @@ import {
   getOne,
   updateOne,
 } from './handlerFactory.js';
+
+//// This is for saving photos to our Memory storage ////
+const multerStorage = multer.memoryStorage();
+
+// If we need to specify ony images
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image')) {
+    cb(null, true);
+  } else {
+    cb(new AppError('Not an Image! Please upload inly images', 400), false);
+  }
+};
+
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter,
+});
+
+export const uploadTourImage = upload.fields([
+  { name: 'imageCover', maxCount: 1 },
+  { name: 'images', maxCount: 3 },
+]); // when it is mixed fields
+
+// upload.single('image'); // single image only... req.file
+// upload.array('images', 5); //several images in one field... req.files
+
+export const resizeTourImages = catchAsync(async (req, res, next) => {
+  if (!req.files.imageCover || !req.files.images) return next();
+
+  // 1) Cover Image
+  req.body.imageCover = `tour-${req.params.id}-${Date.now()}-cover.jpeg`;
+
+  await sharp(req.files.imageCover[0].buffer)
+    .resize(2000, 1333)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toFile(`pubic/img/tours/${req.body.imageCover}`);
+
+  // 2) Images
+  req.body.images = [];
+
+  await Promise.all(
+    req.files.images.map(async (file, i) => {
+      const filename = `tour-${req.params.id}-${Date.now()}-${i + 1}.jpeg`;
+
+      await sharp(file.buffer)
+        .resize(2000, 1333)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toFile(`pubic/img/tours/${filename}`);
+
+      req.body.images.push(filename);
+    })
+  );
+  next();
+});
 
 export const aliasTopTours = async (req, res, next) => {
   (req.query.limit = '5'), (req.query.sort = '-ratingsAverage,price'); //rating sorting
