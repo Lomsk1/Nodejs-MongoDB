@@ -22,7 +22,7 @@ const tourSchema = new mongoose.Schema(
       max: [5, 'Rating must...'],
       set: (val) => Math.round(val * 10) / 10,
     },
-
+    summary: String,
     price: {
       type: Number,
       required: [true, 'A tour must have a price'],
