@@ -12,6 +12,9 @@ import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
 import xss from 'xss-clean';
 import hpp from 'hpp';
+import compression from 'compression';
+import cors from 'cors';
+import { webhookCheckout } from './controllers/bookingController.js';
 
 dotenv.config();
 
@@ -19,6 +22,18 @@ dotenv.config();
 // const userRouter = require('./routes/userRoutes');
 
 const app = express();
+
+//// deployment. for example heroku
+// app.enable('trust proxy')
+
+// !  Implement CORS
+app.use(
+  cors({
+    origin: 'our site link',
+  })
+);
+
+app.options('*', cors()); // spread of all of the options
 
 // For static files
 app.set('view engine', 'pug');
@@ -43,6 +58,13 @@ const limiter = rateLimit({
   message: 'Too many request from this IP, please try again in an hour!',
 });
 app.use('/api', limiter); //only which starts with this URL
+
+// For Webhooks which is for STRIPE. this must be a STRING, that's why we need to be the first than this json formater below
+app.post(
+  '/webhooks',
+  express.raw({ type: 'application/json' }),
+  webhookCheckout
+);
 
 // Middleware
 app.use(
@@ -69,6 +91,9 @@ app.use((req, res, next) => {
   next(); // If we don't use next() function, we don't receive responses
 });
 
+app.use(compression());
+
+// Test middleware
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
   next();
